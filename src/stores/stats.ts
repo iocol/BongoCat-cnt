@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia'
 import { reactive, ref } from 'vue'
 
+export interface DailyRecord {
+  keyPresses: number
+  mouseClicks: number
+  activeSeconds: number
+}
+
 export interface StatsStore {
   display: {
     visible: boolean
@@ -21,6 +27,7 @@ export const useStatsStore = defineStore('stats', () => {
   const todayMouseClicks = ref(0)
   const lastKeyPresses = ref(0)
   const lastMouseClicks = ref(0)
+  const dailyRecords = reactive<Record<string, DailyRecord>>({})
 
   // ---- 内部计时 ----
   let timerInterval: ReturnType<typeof setInterval> | null = null
@@ -40,8 +47,19 @@ export const useStatsStore = defineStore('stats', () => {
   }
 
   /**
+   * 将指定日期的数据归档到日历记录中。
+   */
+  const archiveRecord = (date: string) => {
+    dailyRecords[date] = {
+      keyPresses: todayKeyPresses.value,
+      mouseClicks: todayMouseClicks.value,
+      activeSeconds: todayActiveSeconds.value,
+    }
+  }
+
+  /**
    * 检查并处理日期切换。
-   * 无论应用连续运行跨天，还是停多天后重新打开，都会将上一次的数据归档到「上次记录」。
+   * 无论应用连续运行跨天，还是停多天后重新打开，都会将上一次的数据归档到日历记录与「上次记录」。
    */
   const checkDailyReset = () => {
     const today = getBeijingDateString()
@@ -51,7 +69,9 @@ export const useStatsStore = defineStore('stats', () => {
       return
     }
 
-    // 日期已变化：将上一次的数据归档到上次记录
+    // 日期已变化：将前一天的数据归档到日历记录和上次记录
+    archiveRecord(todayDate.value)
+
     lastKeyPresses.value = todayKeyPresses.value
     lastMouseClicks.value = todayMouseClicks.value
 
@@ -96,6 +116,9 @@ export const useStatsStore = defineStore('stats', () => {
     todayMouseClicks.value = 0
     lastKeyPresses.value = 0
     lastMouseClicks.value = 0
+    Object.keys(dailyRecords).forEach((key) => {
+      delete dailyRecords[key]
+    })
     todayDate.value = getBeijingDateString()
   }
 
@@ -112,6 +135,8 @@ export const useStatsStore = defineStore('stats', () => {
     todayMouseClicks,
     lastKeyPresses,
     lastMouseClicks,
+    dailyRecords,
+    getBeijingDateString,
     incrementKeyPress,
     incrementMouseClick,
     resetAll,

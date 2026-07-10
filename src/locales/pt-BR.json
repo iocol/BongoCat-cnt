@@ -36,7 +36,8 @@
           "showStats": "Mostrar Painel de Estatísticas",
           "statsPosition": "Posição do Painel de Estatísticas",
           "statsSettings": "Configurações de Estatísticas",
-          "resetStats": "Redefinir Estatísticas"
+          "resetStats": "Redefinir Estatísticas",
+          "calendarRecord": "Registro do Calendário"
         },
         "hints": {
           "mirrorMode": "Quando ativado, o modelo será invertido horizontalmente.",
@@ -61,7 +62,10 @@
           "bottomRight": "Inferior Direito"
         },
         "buttons": {
-          "resetAll": "Redefinir Tudo"
+          "resetAll": "Redefinir Tudo",
+          "openCalendar": "Registro do Calendário",
+          "backToSettings": "Voltar às Configurações",
+          "today": "Hoje"
         }
       },
       "general": {

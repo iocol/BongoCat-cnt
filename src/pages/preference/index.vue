@@ -12,6 +12,7 @@ import { useModelStore } from '@/stores/model'
 import { isMac } from '@/utils/platform'
 
 import About from './components/about/index.vue'
+import Calendar from './components/calendar/index.vue'
 import Cat from './components/cat/index.vue'
 import General from './components/general/index.vue'
 import Model from './components/model/index.vue'
@@ -20,6 +21,7 @@ import Shortcut from './components/shortcut/index.vue'
 useTray()
 const appStore = useAppStore()
 const current = ref(0)
+const showCalendar = ref(false)
 const { t } = useI18n()
 const generalStore = useGeneralStore()
 const modelStore = useModelStore()
@@ -28,6 +30,19 @@ const appWindow = getCurrentWebviewWindow()
 watch(() => generalStore.appearance.language, () => {
   appWindow.setTitle(t('pages.preference.title'))
 }, { immediate: true })
+
+function handleMenuClick(index: number) {
+  current.value = index
+  showCalendar.value = false
+}
+
+function handleOpenCalendar() {
+  showCalendar.value = true
+}
+
+function handleBackFromCalendar() {
+  showCalendar.value = false
+}
 
 const menus = computed(() => [
   {
@@ -96,7 +111,7 @@ const menus = computed(() => [
           :key="item.key"
           class="size-20 flex flex-col cursor-pointer items-center justify-center gap-2 transition color-text-tertiary rounded-lg hover:bg-[--ant-color-fill-tertiary] dark:color-text-secondary"
           :class="{ 'bg-container! color-blue-5! dark:color-blue-7! font-bold dark:bg-[--ant-color-fill-quaternary]!': current === index }"
-          @click="current = index"
+          @click="handleMenuClick(index)"
         >
           <div
             class="size-8"
@@ -109,13 +124,22 @@ const menus = computed(() => [
     </div>
 
     <div
-      v-for="(item, index) in menus"
-      v-show="current === index"
-      :key="item.key"
+      v-show="!showCalendar"
       class="flex-1 overflow-auto bg-[--ant-color-fill-quaternary] p-4 dark:bg-container"
       data-tauri-drag-region
     >
-      <component :is="item.component" />
+      <component
+        :is="menus[current].component"
+        @open-calendar="handleOpenCalendar"
+      />
+    </div>
+
+    <div
+      v-show="showCalendar"
+      class="flex-1 overflow-auto bg-[--ant-color-fill-quaternary] p-4 dark:bg-container"
+      data-tauri-drag-region
+    >
+      <Calendar @back="handleBackFromCalendar" />
     </div>
   </Flex>
 

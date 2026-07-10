@@ -7,6 +7,10 @@ import { useCatStore } from '@/stores/cat'
 import { useStatsStore } from '@/stores/stats'
 import { isWindows } from '@/utils/platform'
 
+const emit = defineEmits<{
+  (e: 'openCalendar'): void
+}>()
+
 const catStore = useCatStore()
 const statsStore = useStatsStore()
 </script>
@@ -211,6 +215,15 @@ const statsStore = useStatsStore()
         @click="statsStore.resetAll()"
       >
         {{ $t('pages.preference.cat.buttons.resetAll') }}
+      </button>
+    </ProListItem>
+
+    <ProListItem :title="$t('pages.preference.cat.labels.calendarRecord')">
+      <button
+        class="bg-[--ant-color-primary] px-3 py-1 text-white transition-colors text-sm rounded hover:bg-[--ant-color-primary-hover]"
+        @click="emit('openCalendar')"
+      >
+        📅 {{ $t('pages.preference.cat.buttons.openCalendar') }}
       </button>
     </ProListItem>
   </ProList>

@@ -36,7 +36,8 @@
           "showStats": "Hiện bảng thống kê",
           "statsPosition": "Vị trí bảng thống kê",
           "statsSettings": "Cài đặt thống kê",
-          "resetStats": "Đặt lại thống kê"
+          "resetStats": "Đặt lại thống kê",
+          "calendarRecord": "Lịch sử ghi chép"
         },
         "hints": {
           "mirrorMode": "Bật để lật ngang mô hình.",
@@ -61,7 +62,10 @@
           "bottomRight": "Dưới phải"
         },
         "buttons": {
-          "resetAll": "Đặt lại tất cả"
+          "resetAll": "Đặt lại tất cả",
+          "openCalendar": "Lịch sử ghi chép",
+          "backToSettings": "Quay lại cài đặt",
+          "today": "Hôm nay"
         }
       },
       "general": {

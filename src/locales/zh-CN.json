@@ -36,7 +36,8 @@
           "showStats": "显示统计面板",
           "statsPosition": "统计面板位置",
           "statsSettings": "统计设置",
-          "resetStats": "重置统计"
+          "resetStats": "重置统计",
+          "calendarRecord": "日历记录"
         },
         "hints": {
           "mirrorMode": "启用后，模型将水平镜像翻转。",
@@ -61,7 +62,10 @@
           "bottomRight": "右下角"
         },
         "buttons": {
-          "resetAll": "重置全部"
+          "resetAll": "重置全部",
+          "openCalendar": "日历记录",
+          "backToSettings": "返回设置",
+          "today": "今天"
         }
       },
       "general": {

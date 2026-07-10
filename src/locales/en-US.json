@@ -32,7 +32,12 @@
           "behavior": "Motions and Expressions",
           "autoReleaseDelay": "Auto Release Delay",
           "hideOnHover": "Hide on Hover",
-          "maxFPS": "Max Frame Rate"
+          "maxFPS": "Max Frame Rate",
+          "showStats": "Show Statistics Panel",
+          "statsPosition": "Statistics Panel Position",
+          "statsSettings": "Statistics Settings",
+          "resetStats": "Reset Statistics",
+          "calendarRecord": "Calendar Record"
         },
         "hints": {
           "mirrorMode": "When enabled, the model will be mirrored horizontally.",
@@ -57,7 +62,10 @@
           "bottomRight": "Bottom Right"
         },
         "buttons": {
-          "resetAll": "Reset All"
+          "resetAll": "Reset All",
+          "openCalendar": "Calendar Record",
+          "backToSettings": "Back to Settings",
+          "today": "Today"
         }
       },
       "general": {
