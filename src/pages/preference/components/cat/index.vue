@@ -4,9 +4,11 @@ import { Divider, Flex, InputNumber, Slider, SpaceAddon, SpaceCompact, Switch } 
 import ProListItem from '@/components/pro-list-item/index.vue'
 import ProList from '@/components/pro-list/index.vue'
 import { useCatStore } from '@/stores/cat'
+import { useStatsStore } from '@/stores/stats'
 import { isWindows } from '@/utils/platform'
 
 const catStore = useCatStore()
+const statsStore = useStatsStore()
 </script>
 
 <template>
@@ -165,6 +167,51 @@ const catStore = useCatStore()
           },
         }"
       />
+    </ProListItem>
+  </ProList>
+
+  <ProList :title="$t('pages.preference.cat.labels.statsSettings')">
+    <ProListItem
+      :description="$t('pages.preference.cat.hints.showStats')"
+      :title="$t('pages.preference.cat.labels.showStats')"
+    >
+      <Switch v-model:checked="statsStore.display.visible" />
+    </ProListItem>
+
+    <ProListItem
+      v-if="statsStore.display.visible"
+      :description="$t('pages.preference.cat.hints.statsPosition')"
+      :title="$t('pages.preference.cat.labels.statsPosition')"
+    >
+      <select
+        v-model="statsStore.display.position"
+        class="border-gray-300 px-2 py-1 border text-sm rounded dark:border-gray-600 dark:bg-gray-800"
+      >
+        <option value="top-left">
+          {{ $t('pages.preference.cat.options.topLeft') }}
+        </option>
+        <option value="top-right">
+          {{ $t('pages.preference.cat.options.topRight') }}
+        </option>
+        <option value="bottom-left">
+          {{ $t('pages.preference.cat.options.bottomLeft') }}
+        </option>
+        <option value="bottom-right">
+          {{ $t('pages.preference.cat.options.bottomRight') }}
+        </option>
+      </select>
+    </ProListItem>
+
+    <ProListItem
+      v-if="statsStore.display.visible"
+      :title="$t('pages.preference.cat.labels.resetStats')"
+    >
+      <button
+        class="bg-red-500 hover:bg-red-600 px-3 py-1 text-white text-sm rounded"
+        @click="statsStore.resetAll()"
+      >
+        {{ $t('pages.preference.cat.buttons.resetAll') }}
+      </button>
     </ProListItem>
   </ProList>
 </template>

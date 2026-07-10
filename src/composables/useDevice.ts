@@ -8,6 +8,7 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useCatStore } from '@/stores/cat'
 import { useModelStore } from '@/stores/model'
+import { useStatsStore } from '@/stores/stats'
 import { inBetween } from '@/utils/is'
 import { isMac, isWindows } from '@/utils/platform'
 
@@ -45,6 +46,7 @@ export function useDevice() {
   const releaseTimers = new Map<string, NodeJS.Timeout>()
   const appStore = useAppStore()
   const catStore = useCatStore()
+  const statsStore = useStatsStore()
   const latestCursorPoint = ref<CursorPoint>()
   const smoothedCursorPoint = ref<CursorPoint>()
   const scaleFactor = ref(1)
@@ -187,6 +189,10 @@ export function useDevice() {
     const { kind, value } = payload
 
     if (kind === 'KeyboardPress' || kind === 'KeyboardRelease') {
+      if (kind === 'KeyboardPress') {
+        statsStore.incrementKeyPress()
+      }
+
       const nextValue = getSupportedKey(value)
 
       if (!nextValue) return
@@ -210,6 +216,7 @@ export function useDevice() {
 
     switch (kind) {
       case 'MousePress':
+        statsStore.incrementMouseClick()
         return handleMouseChange(value)
       case 'MouseRelease':
         return handleMouseChange(value, false)

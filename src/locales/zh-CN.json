@@ -4,6 +4,12 @@
       "hints": {
         "redrawing": "重绘中...",
         "switching": "切换中..."
+      },
+      "stats": {
+        "keys": "按键",
+        "clicks": "点击",
+        "activeToday": "今日活跃",
+        "lastTime": "上次记录"
       }
     },
     "preference": {
@@ -26,7 +32,11 @@
           "behavior": "动作与表情",
           "autoReleaseDelay": "按键自动释放延迟",
           "hideOnHover": "鼠标移入隐藏",
-          "maxFPS": "最大帧率"
+          "maxFPS": "最大帧率",
+          "showStats": "显示统计面板",
+          "statsPosition": "统计面板位置",
+          "statsSettings": "统计设置",
+          "resetStats": "重置统计"
         },
         "hints": {
           "mirrorMode": "启用后，模型将水平镜像翻转。",
@@ -40,7 +50,18 @@
           "windowSize": "将鼠标移至窗口边缘，或按住 Shift 并右键拖动，也可以调整窗口大小。",
           "autoReleaseDelay": "由于 Windows 下部分系统级按键无法捕获释放事件，超时后将自动视为已释放。",
           "hideOnHover": "启用后，鼠标悬停窗口时自动隐藏。可设置延迟时间，0 表示立即隐藏。",
-          "maxFPS": "限制模型渲染的最大帧率，降低帧率可以减少 CPU/GPU 占用。"
+          "maxFPS": "限制模型渲染的最大帧率，降低帧率可以减少 CPU/GPU 占用。",
+          "showStats": "在猫咪窗口上显示按键和点击统计。",
+          "statsPosition": "选择统计面板显示的位置。"
+        },
+        "options": {
+          "topLeft": "左上角",
+          "topRight": "右上角",
+          "bottomLeft": "左下角",
+          "bottomRight": "右下角"
+        },
+        "buttons": {
+          "resetAll": "重置全部"
         }
       },
       "general": {

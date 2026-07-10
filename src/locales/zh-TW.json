@@ -4,6 +4,12 @@
       "hints": {
         "redrawing": "重繪中…",
         "switching": "切換中…"
+      },
+      "stats": {
+        "keys": "按鍵",
+        "clicks": "點擊",
+        "activeToday": "今日活躍",
+        "lastTime": "上次記錄"
       }
     },
     "preference": {
@@ -26,7 +32,11 @@
           "behavior": "動作與表情",
           "autoReleaseDelay": "按鍵自動釋放延遲",
           "hideOnHover": "滑鼠游標移入隱藏",
-          "maxFPS": "最大幀率"
+          "maxFPS": "最大幀率",
+          "showStats": "顯示統計面板",
+          "statsPosition": "統計面板位置",
+          "statsSettings": "統計設定",
+          "resetStats": "重置統計"
         },
         "hints": {
           "mirrorMode": "啟用後，模型將水平鏡像翻轉。",
@@ -40,7 +50,18 @@
           "windowSize": "將滑鼠游標移至視窗邊緣，或按住 Shift 並右鍵拖曳，也可以調整視窗大小。",
           "autoReleaseDelay": "由於 Windows 下部份系統級按鍵無法擷取釋放事件，超時後將自動視為已釋放。",
           "hideOnHover": "啟用後，滑鼠游標懸停視窗時自動隱藏。可設定延遲時間，0 表示立即隱藏。",
-          "maxFPS": "限制模型渲染的最大幀率，降低幀率可以減少 CPU/GPU 佔用。"
+          "maxFPS": "限制模型渲染的最大幀率，降低幀率可以減少 CPU/GPU 佔用。",
+          "showStats": "在貓咪視窗上顯示按鍵和點擊統計。",
+          "statsPosition": "選擇統計面板顯示的位置。"
+        },
+        "options": {
+          "topLeft": "左上角",
+          "topRight": "右上角",
+          "bottomLeft": "左下角",
+          "bottomRight": "右下角"
+        },
+        "buttons": {
+          "resetAll": "重置全部"
         }
       },
       "general": {

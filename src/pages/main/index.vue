@@ -22,6 +22,7 @@ import { hideWindow, setAlwaysOnTop, setTaskbarVisibility, showWindow } from '@/
 import { useCatStore } from '@/stores/cat'
 import { useGeneralStore } from '@/stores/general.ts'
 import { useModelStore } from '@/stores/model'
+import { useStatsStore } from '@/stores/stats'
 import { isImage } from '@/utils/is'
 import live2d from '@/utils/live2d'
 import { join } from '@/utils/path'
@@ -38,6 +39,9 @@ const generalStore = useGeneralStore()
 const resizing = ref(false)
 const backgroundImagePath = ref<string>()
 const { stickActive } = useGamepad()
+
+const statsStore = useStatsStore()
+const showStats = ref(false)
 
 onMounted(startListening)
 
@@ -175,6 +179,24 @@ function handleMouseMove(event: MouseEvent) {
 
   catStore.window.scale = round(nextScale)
 }
+
+function formatNumber(n: number): string {
+  if (n >= 10000000) {
+    return `${(n / 10000).toFixed(2)}w`
+  }
+  if (n >= 100000) {
+    return `${(n / 1000).toFixed(2)}k`
+  }
+  return n.toLocaleString()
+}
+
+function formatTime(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  if (h > 0) return `${h}h${m}m`
+  return `${m}m`
+}
 </script>
 
 <template>
@@ -212,5 +234,163 @@ function handleMouseMove(event: MouseEvent) {
         {{ resizing ? $t('pages.main.hints.redrawing') : $t('pages.main.hints.switching') }}
       </span>
     </div>
+
+    <!-- 统计面板 -->
+    <div
+      v-if="statsStore.display.visible"
+      class="stats-panel !h-auto !w-auto"
+      :class="statsStore.display.position"
+      @contextmenu.stop.prevent="showStats = !showStats"
+    >
+      <span class="stat-pill">⌨️{{ formatNumber(statsStore.todayKeyPresses) }} 🖱️{{ formatNumber(statsStore.todayMouseClicks) }}</span>
+
+      <!-- 详细统计（右键切换） -->
+      <Transition name="expand">
+        <div
+          v-if="showStats"
+          class="stats-detail"
+        >
+          <div class="detail-section">
+            <div class="detail-title">
+              📅 {{ $t('pages.main.stats.activeToday') }}
+            </div>
+            <div class="detail-row">
+              <span class="detail-num">{{ formatTime(statsStore.todayActiveSeconds) }}</span>
+            </div>
+          </div>
+          <div class="detail-section">
+            <div class="detail-title">
+              🕰️ {{ $t('pages.main.stats.lastTime') }}
+            </div>
+            <div class="detail-row">
+              <span>{{ $t('pages.main.stats.keys') }}</span>
+              <span class="detail-num">{{ formatNumber(statsStore.lastKeyPresses) }}</span>
+            </div>
+            <div class="detail-row">
+              <span>{{ $t('pages.main.stats.clicks') }}</span>
+              <span class="detail-num">{{ formatNumber(statsStore.lastMouseClicks) }}</span>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.stats-panel {
+  position: absolute;
+  z-index: 10;
+  user-select: none;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  &.top-left {
+    top: 4px !important;
+    left: 4px !important;
+    bottom: auto !important;
+    right: auto !important;
+  }
+
+  &.top-right {
+    top: 4px !important;
+    right: 4px !important;
+    bottom: auto !important;
+    left: auto !important;
+  }
+
+  &.bottom-left {
+    bottom: 4px !important;
+    left: 4px !important;
+    top: auto !important;
+    right: auto !important;
+  }
+
+  &.bottom-right {
+    bottom: 4px !important;
+    right: 4px !important;
+    top: auto !important;
+    left: auto !important;
+  }
+}
+
+.stat-pill {
+  display: inline-flex;
+  gap: 6px;
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 10px;
+  font-family: 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  line-height: 1.6;
+}
+
+.stats-detail {
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 4px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.detail-title {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.03em;
+  margin-bottom: 1px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 1px 4px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.detail-num {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.15s ease;
+  overflow: hidden;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0;
+  padding: 0 8px;
+}
+
+.expand-enter-to,
+.expand-leave-from {
+  opacity: 1;
+  max-height: 100px;
+}
+</style>
