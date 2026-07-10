@@ -15,7 +15,7 @@
 
 ## 开发背景
 
-本项目的灵感来源于 [ayangweb](https://github.com/ayangweb) 大佬开发的 [BongoCat](https://github.com/ayangweb/BongoCat)。这是一款基于 Tauri 的跨平台互动桌宠，但原版缺少一些我想要的数据统计功能，于是 Fork 并添加了以下功能。
+本项目的灵感来源于 [ayangweb](https://github.com/ayangweb) 大佬开发的 [BongoCat](https://github.com/ayangweb/BongoCat)（v1.1.0）。这是一款基于 Tauri 的跨平台互动桌宠，但原版缺少一些我想要的数据统计功能，于是 Fork 并基于 v1.1.0 版本添加了以下功能。
 
 ## 新增功能（与原版对比）
 
