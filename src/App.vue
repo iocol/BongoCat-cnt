@@ -44,9 +44,19 @@ onMounted(async () => {
   await generalStore.$tauri.start()
   await generalStore.init()
   await shortcutStore.$tauri.start()
+  shortcutStore.init()
   await statsStore.$tauri.start()
   statsStore.init()
   await restoreState()
+})
+
+useTauriListen(LISTEN_KEY.APP_EXITING, async () => {
+  await statsStore.$tauri.saveNow()
+  await appStore.$tauri.saveNow()
+  await modelStore.$tauri.saveNow()
+  await catStore.$tauri.saveNow()
+  await generalStore.$tauri.saveNow()
+  await shortcutStore.$tauri.saveNow()
 })
 
 watch(() => generalStore.appearance.language, (value) => {

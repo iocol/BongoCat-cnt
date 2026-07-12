@@ -34,12 +34,10 @@ export const useStatsStore = defineStore('stats', () => {
   const IDLE_THRESHOLD = 5000
   const lastActivityTime = ref(0)
 
-  /** 获取北京时间 YYYY-MM-DD */
-  const getBeijingDateString = () => {
+  /** 获取本地日期字符串 YYYY-MM-DD */
+  const getLocalDateString = () => {
     const now = new Date()
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000
-    const Beijing = new Date(utc + 8 * 3600000)
-    return `${Beijing.getFullYear()}-${String(Beijing.getMonth() + 1).padStart(2, '0')}-${String(Beijing.getDate()).padStart(2, '0')}`
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   }
 
   const notifyActivity = () => {
@@ -62,10 +60,15 @@ export const useStatsStore = defineStore('stats', () => {
    * 无论应用连续运行跨天，还是停多天后重新打开，都会将上一次的数据归档到日历记录与「上次记录」。
    */
   const checkDailyReset = () => {
-    const today = getBeijingDateString()
+    const today = getLocalDateString()
 
-    if (!todayDate.value || todayDate.value === today) {
+    if (!todayDate.value) {
       todayDate.value = today
+      return
+    }
+
+    if (todayDate.value === today) {
+      archiveRecord(today)
       return
     }
 
@@ -80,6 +83,8 @@ export const useStatsStore = defineStore('stats', () => {
     todayKeyPresses.value = 0
     todayMouseClicks.value = 0
     todayDate.value = today
+
+    archiveRecord(today)
   }
 
   const startTimer = () => {
@@ -89,6 +94,7 @@ export const useStatsStore = defineStore('stats', () => {
       const now = Date.now()
       if (lastActivityTime.value > 0 && now - lastActivityTime.value < IDLE_THRESHOLD) {
         todayActiveSeconds.value++
+        archiveRecord(todayDate.value || getLocalDateString())
       }
     }, 1000)
   }
@@ -102,15 +108,18 @@ export const useStatsStore = defineStore('stats', () => {
 
   const incrementKeyPress = () => {
     todayKeyPresses.value++
+    archiveRecord(todayDate.value || getLocalDateString())
     notifyActivity()
   }
 
   const incrementMouseClick = () => {
     todayMouseClicks.value++
+    archiveRecord(todayDate.value || getLocalDateString())
     notifyActivity()
   }
 
   const resetAll = () => {
+    const today = getLocalDateString()
     todayActiveSeconds.value = 0
     todayKeyPresses.value = 0
     todayMouseClicks.value = 0
@@ -119,7 +128,7 @@ export const useStatsStore = defineStore('stats', () => {
     Object.keys(dailyRecords).forEach((key) => {
       delete dailyRecords[key]
     })
-    todayDate.value = getBeijingDateString()
+    todayDate.value = today
   }
 
   const init = () => {
@@ -136,7 +145,7 @@ export const useStatsStore = defineStore('stats', () => {
     lastKeyPresses,
     lastMouseClicks,
     dailyRecords,
-    getBeijingDateString,
+    getLocalDateString,
     incrementKeyPress,
     incrementMouseClick,
     resetAll,

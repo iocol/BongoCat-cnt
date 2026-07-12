@@ -12,6 +12,11 @@ import 'antdv-next/dist/reset.css'
 import './assets/css/global.scss'
 
 const pinia = createPinia()
-pinia.use(createPlugin({ saveOnChange: true }))
+pinia.use(createPlugin({
+  saveOnChange: true,
+  saveOnExit: true,
+  saveStrategy: 'debounce',
+  saveInterval: 1000,
+}))
 
 createApp(App).use(router).use(pinia).use(i18n).mount('#app')

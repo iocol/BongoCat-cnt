@@ -12,6 +12,9 @@ use tauri_plugin_custom_window::{
     MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL, show_preference_window,
 };
 use utils::fs_extra::copy_dir;
+use tauri::Emitter;
+
+const APP_EXITING_EVENT: &str = "app:exiting";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -64,6 +67,7 @@ pub fn run() {
         .plugin(tauri_plugin_locale::init())
         .on_window_event(|window, event| match event {
             WindowEvent::CloseRequested { api, .. } => {
+                let _ = window.emit(APP_EXITING_EVENT, ());
                 let _ = window.hide();
 
                 api.prevent_close();

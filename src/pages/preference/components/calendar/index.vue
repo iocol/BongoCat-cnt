@@ -19,7 +19,7 @@ const emit = defineEmits<{
 const statsStore = useStatsStore()
 
 const today = computed(() => {
-  return statsStore.getBeijingDateString()
+  return statsStore.getLocalDateString()
 })
 
 const currentYear = ref(new Date().getFullYear())
@@ -53,13 +53,30 @@ const monthTitle = computed(() => {
   return `${currentYear.value}年 ${currentMonth.value}月`
 })
 
-function getBeijingDateString(year: number, month: number, day: number) {
+/**
+ * 根据年月日获取本地日期字符串 YYYY-MM-DD。
+ */
+function getLocalDateString(year: number, month: number, day: number) {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+/**
+ * 获取指定日期的实时或存档记录，优先使用实时今日数据。
+ */
+function getRecord(dateStr: string, todayStr: string) {
+  return dateStr === todayStr
+    ? {
+        keyPresses: statsStore.todayKeyPresses,
+        mouseClicks: statsStore.todayMouseClicks,
+        activeSeconds: statsStore.todayActiveSeconds,
+      }
+    : statsStore.dailyRecords[dateStr]
 }
 
 const calendarDays = computed(() => {
   const year = currentYear.value
   const month = currentMonth.value
+  const todayStr = today.value
   const firstDay = new Date(year, month - 1, 1)
   const lastDay = new Date(year, month, 0)
   const startDayOfWeek = firstDay.getDay()
@@ -73,19 +90,19 @@ const calendarDays = computed(() => {
     const day = prevMonthLastDay - i
     days.push({
       date: day,
-      dateString: getBeijingDateString(month === 1 ? year - 1 : year, month === 1 ? 12 : month - 1, day),
+      dateString: getLocalDateString(month === 1 ? year - 1 : year, month === 1 ? 12 : month - 1, day),
       isCurrentMonth: false,
     })
   }
 
   // 当月日期
   for (let i = 1; i <= daysInMonth; i++) {
-    const dateString = getBeijingDateString(year, month, i)
+    const dateString = getLocalDateString(year, month, i)
     days.push({
       date: i,
       dateString,
       isCurrentMonth: true,
-      record: statsStore.dailyRecords[dateString],
+      record: getRecord(dateString, todayStr),
     })
   }
 
@@ -94,7 +111,7 @@ const calendarDays = computed(() => {
   for (let i = 1; i <= remaining; i++) {
     days.push({
       date: i,
-      dateString: getBeijingDateString(month === 12 ? year + 1 : year, month === 12 ? 1 : month + 1, i),
+      dateString: getLocalDateString(month === 12 ? year + 1 : year, month === 12 ? 1 : month + 1, i),
       isCurrentMonth: false,
     })
   }
@@ -105,8 +122,7 @@ const calendarDays = computed(() => {
 const monthStats = computed<MonthStats>(() => {
   const year = currentYear.value
   const month = currentMonth.value
-  const todayStr = statsStore.getBeijingDateString()
-  const isCurrentMonth = year === new Date().getFullYear() && month === new Date().getMonth() + 1
+  const todayStr = today.value
 
   let keyPresses = 0
   let mouseClicks = 0
@@ -116,19 +132,13 @@ const monthStats = computed<MonthStats>(() => {
   // 遍历当月所有日期
   const daysInMonth = new Date(year, month, 0).getDate()
   for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = getBeijingDateString(year, month, day)
-    const record = statsStore.dailyRecords[dateStr]
+    const dateStr = getLocalDateString(year, month, day)
+    const record = getRecord(dateStr, todayStr)
 
     if (record) {
       keyPresses += record.keyPresses
       mouseClicks += record.mouseClicks
       activeSeconds += record.activeSeconds
-      daysWithRecord++
-    } else if (isCurrentMonth && dateStr === todayStr) {
-      // 如果是今天的实时数据
-      keyPresses += statsStore.todayKeyPresses
-      mouseClicks += statsStore.todayMouseClicks
-      activeSeconds += statsStore.todayActiveSeconds
       daysWithRecord++
     }
   }
@@ -303,24 +313,6 @@ function formatTime(seconds: number): string {
             <div class="stat-line">
               <span class="stat-icon">⏱</span>
               <span class="stat-value">{{ formatTime(day.record.activeSeconds) }}</span>
-            </div>
-          </div>
-
-          <div
-            v-else-if="day.isCurrentMonth && day.dateString === today"
-            class="day-stats empty-today"
-          >
-            <div class="stat-line">
-              <span class="stat-icon">⌨️</span>
-              <span class="stat-value">{{ formatNumber(statsStore.todayKeyPresses) }}</span>
-            </div>
-            <div class="stat-line">
-              <span class="stat-icon">🖱️</span>
-              <span class="stat-value">{{ formatNumber(statsStore.todayMouseClicks) }}</span>
-            </div>
-            <div class="stat-line">
-              <span class="stat-icon">⏱</span>
-              <span class="stat-value">{{ formatTime(statsStore.todayActiveSeconds) }}</span>
             </div>
           </div>
         </div>
@@ -514,10 +506,6 @@ function formatTime(seconds: number): string {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.empty-today {
-  opacity: 0.9;
 }
 
 .month-stats-container {
