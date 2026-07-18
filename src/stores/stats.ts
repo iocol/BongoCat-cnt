@@ -5,6 +5,8 @@ export interface DailyRecord {
   keyPresses: number
   mouseClicks: number
   activeSeconds: number
+  gamepadPresses: number
+  gamepadStickSeconds: number
 }
 
 export interface StatsStore {
@@ -25,14 +27,18 @@ export const useStatsStore = defineStore('stats', () => {
   const todayActiveSeconds = ref(0)
   const todayKeyPresses = ref(0)
   const todayMouseClicks = ref(0)
+  const todayGamepadPresses = ref(0)
+  const todayGamepadStickSeconds = ref(0)
   const lastKeyPresses = ref(0)
   const lastMouseClicks = ref(0)
+  const lastGamepadPresses = ref(0)
   const dailyRecords = reactive<Record<string, DailyRecord>>({})
 
   // ---- 内部计时 ----
   let timerInterval: ReturnType<typeof setInterval> | null = null
   const IDLE_THRESHOLD = 5000
   const lastActivityTime = ref(0)
+  const lastGamepadStickTime = ref(0)
 
   /** 获取本地日期字符串 YYYY-MM-DD */
   const getLocalDateString = () => {
@@ -52,6 +58,8 @@ export const useStatsStore = defineStore('stats', () => {
       keyPresses: todayKeyPresses.value,
       mouseClicks: todayMouseClicks.value,
       activeSeconds: todayActiveSeconds.value,
+      gamepadPresses: todayGamepadPresses.value,
+      gamepadStickSeconds: todayGamepadStickSeconds.value,
     }
   }
 
@@ -77,11 +85,14 @@ export const useStatsStore = defineStore('stats', () => {
 
     lastKeyPresses.value = todayKeyPresses.value
     lastMouseClicks.value = todayMouseClicks.value
+    lastGamepadPresses.value = todayGamepadPresses.value
 
     // 重置今日数据
     todayActiveSeconds.value = 0
     todayKeyPresses.value = 0
     todayMouseClicks.value = 0
+    todayGamepadPresses.value = 0
+    todayGamepadStickSeconds.value = 0
     todayDate.value = today
 
     archiveRecord(today)
@@ -94,6 +105,10 @@ export const useStatsStore = defineStore('stats', () => {
       const now = Date.now()
       if (lastActivityTime.value > 0 && now - lastActivityTime.value < IDLE_THRESHOLD) {
         todayActiveSeconds.value++
+        archiveRecord(todayDate.value || getLocalDateString())
+      }
+      if (lastGamepadStickTime.value > 0 && now - lastGamepadStickTime.value < IDLE_THRESHOLD) {
+        todayGamepadStickSeconds.value++
         archiveRecord(todayDate.value || getLocalDateString())
       }
     }, 1000)
@@ -118,13 +133,31 @@ export const useStatsStore = defineStore('stats', () => {
     notifyActivity()
   }
 
+  const incrementGamepadPress = () => {
+    todayGamepadPresses.value++
+    archiveRecord(todayDate.value || getLocalDateString())
+    notifyActivity()
+  }
+
+  const notifyGamepadStickActivity = () => {
+    lastGamepadStickTime.value = Date.now()
+    notifyActivity()
+  }
+
+  const stopGamepadStickTimer = () => {
+    lastGamepadStickTime.value = 0
+  }
+
   const resetAll = () => {
     const today = getLocalDateString()
     todayActiveSeconds.value = 0
     todayKeyPresses.value = 0
     todayMouseClicks.value = 0
+    todayGamepadPresses.value = 0
+    todayGamepadStickSeconds.value = 0
     lastKeyPresses.value = 0
     lastMouseClicks.value = 0
+    lastGamepadPresses.value = 0
     Object.keys(dailyRecords).forEach((key) => {
       delete dailyRecords[key]
     })
@@ -142,18 +175,24 @@ export const useStatsStore = defineStore('stats', () => {
     todayActiveSeconds,
     todayKeyPresses,
     todayMouseClicks,
+    todayGamepadPresses,
+    todayGamepadStickSeconds,
     lastKeyPresses,
     lastMouseClicks,
+    lastGamepadPresses,
     dailyRecords,
     getLocalDateString,
     incrementKeyPress,
     incrementMouseClick,
+    incrementGamepadPress,
+    notifyGamepadStickActivity,
+    stopGamepadStickTimer,
     resetAll,
     init,
     stopTimer,
   }
 }, {
   tauri: {
-    filterKeys: ['lastActivityTime'],
+    filterKeys: ['lastActivityTime', 'lastGamepadStickTime'],
   },
 })

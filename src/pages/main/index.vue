@@ -10,7 +10,7 @@ import { exists, readDir } from '@tauri-apps/plugin-fs'
 import { useDebounceFn, useEventListener } from '@vueuse/core'
 import { round } from 'es-toolkit'
 import { nth } from 'es-toolkit/compat'
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 import { useAppMenu } from '@/composables/useAppMenu'
 import { useDevice } from '@/composables/useDevice'
@@ -19,6 +19,7 @@ import { useModel } from '@/composables/useModel'
 import { useTauriListen } from '@/composables/useTauriListen'
 import { LISTEN_KEY } from '@/constants'
 import { hideWindow, setAlwaysOnTop, setTaskbarVisibility, showWindow } from '@/plugins/window'
+import { useBuddyStore } from '@/stores/buddy'
 import { useCatStore } from '@/stores/cat'
 import { useGeneralStore } from '@/stores/general.ts'
 import { useModelStore } from '@/stores/model'
@@ -41,9 +42,25 @@ const backgroundImagePath = ref<string>()
 const { stickActive } = useGamepad()
 
 const statsStore = useStatsStore()
+const buddyStore = useBuddyStore()
 const showStats = ref(false)
+const statsPage = ref(0)
+const MAX_STATS_PAGE = 1
+const isGamepadMode = computed(() => modelStore.currentModel?.mode === 'gamepad')
 
-onMounted(startListening)
+const hasOnlineBuddies = computed(() => {
+  return buddyStore.peers.some(p => p.online)
+})
+
+const topPeers = computed(() => {
+  return [...buddyStore.peers]
+    .sort((a, b) => (b.today.key_presses + b.today.mouse_clicks) - (a.today.key_presses + a.today.mouse_clicks))
+    .slice(0, 3)
+})
+
+onMounted(() => {
+  startListening()
+})
 
 onUnmounted(handleDestroy)
 
@@ -197,6 +214,22 @@ function formatTime(seconds: number): string {
   if (h > 0) return `${h}h${m}m`
   return `${m}m`
 }
+
+function handleStatsClick() {
+  if (!showStats.value) return
+
+  statsPage.value = (statsPage.value + 1) % (MAX_STATS_PAGE + 1)
+}
+
+function handleStatsContextMenu(event: MouseEvent) {
+  event.preventDefault()
+  event.stopPropagation()
+
+  showStats.value = !showStats.value
+  if (showStats.value) {
+    statsPage.value = 0
+  }
+}
 </script>
 
 <template>
@@ -240,37 +273,112 @@ function formatTime(seconds: number): string {
       v-if="statsStore.display.visible"
       class="stats-panel !h-auto !w-auto"
       :class="statsStore.display.position"
-      @contextmenu.stop.prevent="showStats = !showStats"
+      @click="handleStatsClick"
+      @contextmenu.stop.prevent="handleStatsContextMenu"
+      @mousedown.stop
     >
-      <span class="stat-pill">⌨️{{ formatNumber(statsStore.todayKeyPresses) }} 🖱️{{ formatNumber(statsStore.todayMouseClicks) }}</span>
+      <span
+        v-if="isGamepadMode"
+        :class="{ 'pill-glow': hasOnlineBuddies }"
+      >
+        <span class="stat-pill">🎮{{ formatNumber(statsStore.todayGamepadPresses) }} 🕹️{{ formatTime(statsStore.todayGamepadStickSeconds) }}</span>
+      </span>
+      <span
+        v-else
+        :class="{ 'pill-glow': hasOnlineBuddies }"
+      >
+        <span class="stat-pill">⌨️{{ formatNumber(statsStore.todayKeyPresses) }} 🖱️{{ formatNumber(statsStore.todayMouseClicks) }}</span>
+      </span>
 
-      <!-- 详细统计（右键切换） -->
+      <!-- 详细统计 -->
       <Transition name="expand">
         <div
-          v-if="showStats"
+          v-if="showStats && statsPage === 0"
           class="stats-detail"
         >
-          <div class="detail-section">
-            <div class="detail-title">
-              📅 {{ $t('pages.main.stats.activeToday') }}
+          <template v-if="isGamepadMode">
+            <div class="detail-section">
+              <div class="detail-title">
+                🎮 {{ $t('pages.main.stats.gamepadToday') }}
+              </div>
+              <div class="detail-row">
+                <span>{{ $t('pages.main.stats.gamepadPresses') }}</span>
+                <span class="detail-num">{{ formatNumber(statsStore.todayGamepadPresses) }}</span>
+              </div>
+              <div class="detail-row">
+                <span>{{ $t('pages.main.stats.gamepadStickTime') }}</span>
+                <span class="detail-num">{{ formatTime(statsStore.todayGamepadStickSeconds) }}</span>
+              </div>
             </div>
-            <div class="detail-row">
-              <span class="detail-num">{{ formatTime(statsStore.todayActiveSeconds) }}</span>
+            <div class="detail-section">
+              <div class="detail-title">
+                🕰️ {{ $t('pages.main.stats.lastTime') }}
+              </div>
+              <div class="detail-row">
+                <span>{{ $t('pages.main.stats.gamepadPresses') }}</span>
+                <span class="detail-num">{{ formatNumber(statsStore.lastGamepadPresses) }}</span>
+              </div>
             </div>
+          </template>
+          <template v-else>
+            <div class="detail-section">
+              <div class="detail-title">
+                📅 {{ $t('pages.main.stats.activeToday') }}
+              </div>
+              <div class="detail-row">
+                <span class="detail-num">{{ formatTime(statsStore.todayActiveSeconds) }}</span>
+              </div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-title">
+                🕰️ {{ $t('pages.main.stats.lastTime') }}
+              </div>
+              <div class="detail-row">
+                <span>{{ $t('pages.main.stats.keys') }}</span>
+                <span class="detail-num">{{ formatNumber(statsStore.lastKeyPresses) }}</span>
+              </div>
+              <div class="detail-row">
+                <span>{{ $t('pages.main.stats.clicks') }}</span>
+                <span class="detail-num">{{ formatNumber(statsStore.lastMouseClicks) }}</span>
+              </div>
+            </div>
+          </template>
+        </div>
+      </Transition>
+
+      <!-- 好友榜 -->
+      <Transition name="expand">
+        <div
+          v-if="showStats && statsPage === 1"
+          class="stats-detail"
+        >
+          <div class="detail-title">
+            👥 {{ $t('pages.main.stats.buddyLeaderboard') }}
           </div>
-          <div class="detail-section">
-            <div class="detail-title">
-              🕰️ {{ $t('pages.main.stats.lastTime') }}
-            </div>
-            <div class="detail-row">
-              <span>{{ $t('pages.main.stats.keys') }}</span>
-              <span class="detail-num">{{ formatNumber(statsStore.lastKeyPresses) }}</span>
-            </div>
-            <div class="detail-row">
-              <span>{{ $t('pages.main.stats.clicks') }}</span>
-              <span class="detail-num">{{ formatNumber(statsStore.lastMouseClicks) }}</span>
-            </div>
+
+          <div
+            v-if="topPeers.length === 0"
+            class="detail-row"
+          >
+            <span>{{ $t('pages.main.stats.noBuddies') }}</span>
           </div>
+
+          <template v-else>
+            <div
+              v-for="(peer, idx) in topPeers"
+              :key="peer.virtual_ip"
+              class="detail-peer-row"
+            >
+              <div class="peer-line">
+                <span class="peer-name">{{ ['🥇', '🥈', '🥉'][idx] }} {{ peer.nickname }}</span>
+                <span class="peer-time">⏱️{{ formatTime(peer.today.active_sec) }}</span>
+              </div>
+              <div class="peer-line peer-stats">
+                <span class="detail-num">⌨️{{ formatNumber(peer.today.key_presses) }}</span>
+                <span class="detail-num">🖱️{{ formatNumber(peer.today.mouse_clicks) }}</span>
+              </div>
+            </div>
+          </template>
         </div>
       </Transition>
     </div>
@@ -278,6 +386,12 @@ function formatTime(seconds: number): string {
 </template>
 
 <style scoped lang="scss">
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
 .stats-panel {
   position: absolute;
   z-index: 10;
@@ -316,11 +430,34 @@ function formatTime(seconds: number): string {
   }
 }
 
+.pill-glow {
+  position: relative;
+  display: inline-flex;
+  align-self: flex-start;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    padding: 1.5px;
+    border-radius: 11.5px;
+    background: conic-gradient(from var(--angle, 0deg), #ff6b9d, #c471f5, #6bc5f5, #5ce6b0, #ffd93d, #ff6b9d);
+    animation: pill-glow 3s linear infinite;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+  }
+}
+
 .stat-pill {
   display: inline-flex;
-  gap: 6px;
-  padding: 2px 8px;
-  background: rgba(0, 0, 0, 0.4);
+  gap: 4px;
+  padding: 1px 6px;
   border-radius: 10px;
   color: rgba(255, 255, 255, 0.85);
   font-size: 10px;
@@ -329,6 +466,13 @@ function formatTime(seconds: number): string {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   line-height: 1.6;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+@keyframes pill-glow {
+  to {
+    --angle: 360deg;
+  }
 }
 
 .stats-detail {
@@ -372,6 +516,33 @@ function formatTime(seconds: number): string {
 .detail-num {
   font-weight: 500;
   color: rgba(255, 255, 255, 0.85);
+}
+
+.detail-peer-row {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.7);
+  font-variant-numeric: tabular-nums;
+
+  .peer-line {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .peer-stats {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .peer-name {
+    font-size: 10px;
+    color: rgba(255, 165, 80, 0.95);
+  }
+
+  .peer-time {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 9px;
+    font-weight: 400;
+  }
 }
 
 .expand-enter-active,

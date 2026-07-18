@@ -1,6 +1,6 @@
 [package]
 name = "bongo-cat"
-version = "1.1.2"
+version = "1.1.4"
 description = "A Tauri App"
 authors = [ "ayangweb" ]
 edition = "2024"
@@ -41,6 +41,10 @@ tauri-plugin-global-shortcut = "2"
 tauri-plugin-locale = "2"
 rdev = { git = "https://github.com/kunkunsh/rdev" }
 gilrs = { git = "https://github.com/ayangweb/gilrs", default-features = false, features = ["xinput"] }
+which = "7"
+urlencoding = "2"
+tiny_http = "0.12"
+ureq = { version = "2", features = ["json"] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 tauri-nspanel.workspace = true

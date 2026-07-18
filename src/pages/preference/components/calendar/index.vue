@@ -19,7 +19,7 @@ const emit = defineEmits<{
 const statsStore = useStatsStore()
 
 const today = computed(() => {
-  return statsStore.getLocalDateString()
+  return statsStore.todayDate || statsStore.getLocalDateString()
 })
 
 const currentYear = ref(new Date().getFullYear())
@@ -69,6 +69,8 @@ function getRecord(dateStr: string, todayStr: string) {
         keyPresses: statsStore.todayKeyPresses,
         mouseClicks: statsStore.todayMouseClicks,
         activeSeconds: statsStore.todayActiveSeconds,
+        gamepadPresses: statsStore.todayGamepadPresses,
+        gamepadStickSeconds: statsStore.todayGamepadStickSeconds,
       }
     : statsStore.dailyRecords[dateStr]
 }
@@ -82,7 +84,7 @@ const calendarDays = computed(() => {
   const startDayOfWeek = firstDay.getDay()
   const daysInMonth = lastDay.getDate()
 
-  const days: Array<{ date: number, dateString: string, isCurrentMonth: boolean, record?: { keyPresses: number, mouseClicks: number, activeSeconds: number } }> = []
+  const days: Array<{ date: number, dateString: string, isCurrentMonth: boolean, record?: { keyPresses: number, mouseClicks: number, activeSeconds: number, gamepadPresses?: number, gamepadStickSeconds?: number } }> = []
 
   // 补充上个月的日期，用于填充第一行
   const prevMonthLastDay = new Date(year, month - 1, 0).getDate()
@@ -162,6 +164,14 @@ function formatTime(seconds: number): string {
   const m = Math.floor((seconds % 3600) / 60)
   if (h > 0) return `${h}h${m}m`
   return `${m}m`
+}
+
+function hasKeyboardMouseData(record: { keyPresses: number, mouseClicks: number, activeSeconds: number }): boolean {
+  return record.keyPresses > 0 || record.mouseClicks > 0 || record.activeSeconds > 0
+}
+
+function hasGamepadData(record: { gamepadPresses?: number, gamepadStickSeconds?: number }): boolean {
+  return (record.gamepadPresses ?? 0) > 0 || (record.gamepadStickSeconds ?? 0) > 0
 }
 </script>
 
@@ -301,18 +311,40 @@ function formatTime(seconds: number): string {
           <div
             v-if="day.record"
             class="day-stats"
+            :class="{ 'has-both': hasKeyboardMouseData(day.record) && hasGamepadData(day.record) }"
           >
-            <div class="stat-line">
-              <span class="stat-icon">⌨️</span>
-              <span class="stat-value">{{ formatNumber(day.record.keyPresses) }}</span>
+            <!-- 键盘/鼠标数据 -->
+            <div
+              v-if="hasKeyboardMouseData(day.record)"
+              class="stats-column"
+            >
+              <div class="stat-line">
+                <span class="stat-icon">⌨️</span>
+                <span class="stat-value">{{ formatNumber(day.record.keyPresses) }}</span>
+              </div>
+              <div class="stat-line">
+                <span class="stat-icon">🖱️</span>
+                <span class="stat-value">{{ formatNumber(day.record.mouseClicks) }}</span>
+              </div>
+              <div class="stat-line">
+                <span class="stat-icon">⏱</span>
+                <span class="stat-value">{{ formatTime(day.record.activeSeconds) }}</span>
+              </div>
             </div>
-            <div class="stat-line">
-              <span class="stat-icon">🖱️</span>
-              <span class="stat-value">{{ formatNumber(day.record.mouseClicks) }}</span>
-            </div>
-            <div class="stat-line">
-              <span class="stat-icon">⏱</span>
-              <span class="stat-value">{{ formatTime(day.record.activeSeconds) }}</span>
+
+            <!-- 手柄数据 -->
+            <div
+              v-if="hasGamepadData(day.record)"
+              class="stats-column"
+            >
+              <div class="stat-line">
+                <span class="stat-icon">🎮</span>
+                <span class="stat-value">{{ formatNumber(day.record.gamepadPresses ?? 0) }}</span>
+              </div>
+              <div class="stat-line">
+                <span class="stat-icon">🕹️</span>
+                <span class="stat-value">{{ formatTime(day.record.gamepadStickSeconds ?? 0) }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -485,6 +517,20 @@ function formatTime(seconds: number): string {
   gap: 1px;
   min-height: 0;
   overflow: hidden;
+
+  &.has-both {
+    flex-direction: row;
+    gap: 6px;
+    justify-content: space-between;
+  }
+}
+
+.stats-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
 }
 
 .stat-line {

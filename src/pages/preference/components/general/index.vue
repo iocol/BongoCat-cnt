@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { disable, enable, isEnabled } from '@tauri-apps/plugin-autostart'
 import { Switch } from 'antdv-next'
 import { watch } from 'vue'
 
 import ProListItem from '@/components/pro-list-item/index.vue'
 import ProList from '@/components/pro-list/index.vue'
+import { disable, enable, isEnabled } from '@/plugins/autostart'
 import { useGeneralStore } from '@/stores/general'
 import { isMac, isWindows } from '@/utils/platform'
 

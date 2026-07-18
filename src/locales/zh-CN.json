@@ -9,7 +9,16 @@
         "keys": "按键",
         "clicks": "点击",
         "activeToday": "今日活跃",
-        "lastTime": "上次记录"
+        "lastTime": "上次记录",
+        "todayStats": "今日统计",
+        "keyPresses": "按键次数",
+        "mouseClicks": "鼠标点击",
+        "activeTime": "活跃时间",
+        "gamepadToday": "今日手柄",
+        "gamepadPresses": "按键",
+        "gamepadStickTime": "摇杆",
+        "buddyLeaderboard": "好友榜",
+        "noBuddies": "暂无好友数据"
       }
     },
     "preference": {
@@ -171,6 +180,35 @@
           "copy": "复制",
           "feedbackIssues": "反馈问题",
           "viewLog": "查看日志"
+        }
+      },
+      "buddy": {
+        "title": "网络连接",
+        "labels": {
+          "networkName": "房间号",
+          "networkSecret": "网络密码",
+          "peerUri": "中转服务器",
+          "nickname": "昵称",
+          "status": "连接状态"
+        },
+        "placeholders": {
+          "networkName": "输入房间号（如 bongocat）",
+          "networkSecret": "输入网络密码",
+          "peerUri": "wss://中转服务器地址:端口/",
+          "nickname": "你的昵称"
+        },
+        "buttons": {
+          "connect": "连接",
+          "disconnect": "断开连接"
+        },
+        "peerList": "好友列表",
+        "status": {
+          "online": "在线",
+          "offline": "离线"
+        },
+        "hints": {
+          "noPeers": "等待好友加入...",
+          "notConnected": "请先连接网络"
         }
       }
     }

@@ -11,6 +11,10 @@ export const LISTEN_KEY = {
   START_MOTION: 'start-motion',
   SET_EXPRESSION: 'set-expression',
   APP_EXITING: 'app:exiting',
+  BUDDY_STATUS_CHANGED: 'buddy:status-changed',
+  BUDDY_PEERS_UPDATED: 'buddy:peers-updated',
+  BUDDY_PEER_PUSH: 'buddy:peer-push',
+  BUDDY_ERROR: 'buddy:error',
 }
 
 export const INVOKE_KEY = {
@@ -18,14 +22,16 @@ export const INVOKE_KEY = {
   START_DEVICE_LISTENING: 'start_device_listening',
   START_GAMEPAD_LISTING: 'start_gamepad_listing',
   STOP_GAMEPAD_LISTING: 'stop_gamepad_listing',
+  START_BUDDY: 'start_buddy',
+  STOP_BUDDY: 'stop_buddy',
+  PUSH_STATS: 'push_stats',
+  GET_BUDDY_STATUS: 'get_buddy_status',
+  REMOVE_BUDDY_PEER: 'remove_buddy_peer',
 }
 
 export const LANGUAGE = {
   ZH_CN: 'zh-CN',
-  ZH_TW: 'zh-TW',
   EN_US: 'en-US',
-  VI_VN: 'vi-VN',
-  PT_BR: 'pt-BR',
 } as const
 
 export const WINDOW_LABEL = {

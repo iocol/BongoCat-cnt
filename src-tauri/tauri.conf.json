@@ -60,7 +60,12 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": ["assets/tray.png", "assets/models"]
+    "resources": ["assets/tray.png", "assets/models", "resources"],
+    "windows": {
+      "nsis": {
+        "installerHooks": "../scripts/installer.nsh"
+      }
+    }
   },
   "plugins": {
     "updater": {

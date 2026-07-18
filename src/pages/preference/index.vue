@@ -12,6 +12,7 @@ import { useModelStore } from '@/stores/model'
 import { isMac } from '@/utils/platform'
 
 import About from './components/about/index.vue'
+import Buddy from './components/buddy/index.vue'
 import Calendar from './components/calendar/index.vue'
 import Cat from './components/cat/index.vue'
 import General from './components/general/index.vue'
@@ -50,6 +51,12 @@ const menus = computed(() => [
     label: t('pages.preference.cat.title'),
     icon: 'i-solar:cat-bold',
     component: Cat,
+  },
+  {
+    key: 'buddy',
+    label: t('pages.preference.buddy.title'),
+    icon: 'i-solar:users-group-rounded-bold',
+    component: Buddy,
   },
   {
     key: 'general',

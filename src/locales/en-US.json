@@ -9,7 +9,13 @@
         "keys": "Keys",
         "clicks": "Clicks",
         "activeToday": "Active Today",
-        "lastTime": "Last Time"
+        "lastTime": "Last Time",
+        "todayStats": "Today Stats",
+        "keyPresses": "Key Presses",
+        "mouseClicks": "Mouse Clicks",
+        "activeTime": "Active Time",
+        "buddyLeaderboard": "Buddy Leaderboard",
+        "noBuddies": "No buddy data"
       }
     },
     "preference": {
@@ -171,6 +177,35 @@
           "copy": "Copy",
           "feedbackIssues": "Feedback Issues",
           "viewLog": "View Logs"
+        }
+      },
+      "buddy": {
+        "title": "Network",
+        "labels": {
+          "networkName": "Room Name",
+          "networkSecret": "Network Secret",
+          "peerUri": "Relay Server",
+          "nickname": "Nickname",
+          "status": "Connection Status"
+        },
+        "placeholders": {
+          "networkName": "Enter room name (e.g. bongocat)",
+          "networkSecret": "Enter network secret",
+          "peerUri": "wss://relay-server:port/",
+          "nickname": "Your nickname"
+        },
+        "buttons": {
+          "connect": "Connect",
+          "disconnect": "Disconnect"
+        },
+        "peerList": "Peers",
+        "status": {
+          "online": "Online",
+          "offline": "Offline"
+        },
+        "hints": {
+          "noPeers": "Waiting for peers to join...",
+          "notConnected": "Connect to the network first"
         }
       }
     }

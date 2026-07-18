@@ -2,11 +2,16 @@ mod core;
 mod utils;
 
 use core::{
+    autostart::{disable_autostart, enable_autostart, is_autostart_enabled},
+    buddy::{
+        BuddyState, get_buddy_status, push_stats, remove_buddy_peer, start_buddy, stop_buddy,
+    },
     device::start_device_listening,
     gamepad::{start_gamepad_listing, stop_gamepad_listing},
     prevent_default, setup,
 };
 use tauri::{Manager, WindowEvent, generate_handler};
+#[cfg(target_os = "macos")]
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_custom_window::{
     MAIN_WINDOW_LABEL, PREFERENCE_WINDOW_LABEL, show_preference_window,
@@ -18,7 +23,8 @@ const APP_EXITING_EVENT: &str = "app:exiting";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let app = tauri::Builder::default()
+    let builder = tauri::Builder::default()
+        .manage(BuddyState::new())
         .setup(|app| {
             let app_handle = app.handle();
 
@@ -34,7 +40,15 @@ pub fn run() {
             copy_dir,
             start_device_listening,
             start_gamepad_listing,
-            stop_gamepad_listing
+            stop_gamepad_listing,
+            start_buddy,
+            stop_buddy,
+            push_stats,
+            get_buddy_status,
+            remove_buddy_peer,
+            is_autostart_enabled,
+            enable_autostart,
+            disable_autostart,
         ])
         .plugin(tauri_plugin_admin_status::init())
         .plugin(tauri_plugin_custom_window::init())
@@ -54,11 +68,15 @@ pub fn run() {
                 .timezone_strategy(tauri_plugin_log::TimezoneStrategy::UseLocal)
                 .filter(|metadata| !metadata.target().contains("gilrs"))
                 .build(),
-        )
-        .plugin(tauri_plugin_autostart::init(
-            MacosLauncher::LaunchAgent,
-            None,
-        ))
+        );
+
+    #[cfg(target_os = "macos")]
+    let builder = builder.plugin(tauri_plugin_autostart::init(
+        MacosLauncher::LaunchAgent,
+        Some(vec!["--auto-launch"]),
+    ));
+
+    let app = builder
         .plugin(tauri_plugin_macos_permissions::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
