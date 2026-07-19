@@ -7,7 +7,7 @@ import { useEventListener } from '@vueuse/core'
 import { ConfigProvider, theme } from 'antdv-next'
 import { isString } from 'es-toolkit'
 import isURL from 'is-url'
-import { onMounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterView } from 'vue-router'
 
@@ -36,8 +36,10 @@ const { isRestored, restoreState } = useWindowState()
 const { darkAlgorithm, defaultAlgorithm } = theme
 const { locale } = useI18n()
 
-// ── Buddy auto-connect + stats push timer ──
+// ---- Buddy auto-connect + stats push timer ----
 let pushTimer: ReturnType<typeof setInterval> | null = null
+// Periodic persist timer - replaces saveOnChange for reliability on slow machines
+let persistTimer: ReturnType<typeof setInterval> | null = null
 
 function startBuddyPushTimer() {
   stopBuddyPushTimer()
@@ -48,6 +50,20 @@ function startBuddyPushTimer() {
       active_sec: statsStore.todayActiveSeconds,
     })
   }, 2000)
+}
+
+function startPersistTimer() {
+  if (persistTimer) return
+  persistTimer = setInterval(() => {
+    statsStore.$tauri.saveNow()
+  }, 30000)
+}
+
+function stopPersistTimer() {
+  if (persistTimer) {
+    clearInterval(persistTimer)
+    persistTimer = null
+  }
 }
 
 watch(() => buddyStore.connected, (connected) => {
@@ -92,7 +108,13 @@ onMounted(async () => {
   statsStore.init()
   await restoreState()
 
+  startPersistTimer()
   autoConnectBuddy()
+})
+
+onUnmounted(() => {
+  stopPersistTimer()
+  stopBuddyPushTimer()
 })
 
 useTauriListen(LISTEN_KEY.APP_EXITING, async () => {
@@ -104,6 +126,7 @@ useTauriListen(LISTEN_KEY.APP_EXITING, async () => {
   await shortcutStore.$tauri.saveNow()
 
   stopBuddyPushTimer()
+  stopPersistTimer()
   if (buddyStore.connected) {
     await buddyStore.stop()
   }

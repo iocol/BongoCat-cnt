@@ -25,27 +25,27 @@ export interface CatStore {
 }
 
 export const useCatStore = defineStore('cat', () => {
-  /* ------------ 废弃字段（后续删除） ------------ */
+  /* ------------ deprecated fields ------------ */
 
-  /** @deprecated 请使用 `model.mirror` */
+  /** @deprecated use `model.mirror` */
   const mirrorMode = ref(false)
 
-  /** @deprecated 请使用 `model.mouseMirror` */
+  /** @deprecated use `model.mouseMirror` */
   const mouseMirror = ref(false)
 
-  /** @deprecated 请使用 `window.passThrough` */
+  /** @deprecated use `window.passThrough` */
   const penetrable = ref(false)
 
-  /** @deprecated 请使用 `window.alwaysOnTop` */
+  /** @deprecated use `window.alwaysOnTop` */
   const alwaysOnTop = ref(true)
 
-  /** @deprecated 请使用 `window.scale` */
+  /** @deprecated use `window.scale` */
   const scale = ref(100)
 
-  /** @deprecated 请使用 `window.opacity` */
+  /** @deprecated use `window.opacity` */
   const opacity = ref(100)
 
-  /** @deprecated 用于标识数据是否已迁移，后续版本将删除 */
+  /** @deprecated Used to mark migrated, will be removed */
   const migrated = ref(false)
 
   const model = reactive<CatStore['model']>({
@@ -54,7 +54,7 @@ export const useCatStore = defineStore('cat', () => {
     motionSound: true,
     behavior: true,
     autoReleaseDelay: 3,
-    maxFPS: 60,
+    maxFPS: 30,
     ignoreMouse: false,
   })
 

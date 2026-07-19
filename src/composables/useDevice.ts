@@ -52,29 +52,41 @@ export function useDevice() {
   const scaleFactor = ref(1)
   const { handlePress, handleRelease, handleMouseChange, handleMouseMove } = useModel()
 
+  // Reusable objects to avoid per-frame allocations
+  const _current = { x: 0, y: 0 }
+  const _destination = { x: 0, y: 0 }
+  const _interpolated = { x: 0, y: 0 }
+
+  // Track currently held keys/mouse buttons so repeat events don't double-count
+  const pressedKeys = new Set<string>()
+  const pressedMouse = new Set<string>()
+
   const tickerCallback = (ticker: Ticker) => {
-    const destination = latestCursorPoint.value
+    const dest = latestCursorPoint.value
 
-    if (!destination) return
+    if (!dest) return
 
-    const current = smoothedCursorPoint.value ?? destination
+    const cur = smoothedCursorPoint.value ?? dest
 
     const alpha = 1 - DAMPING_DECAY ** (ticker.deltaMS / (1000 / 60))
 
-    const interpolated = {
-      x: current.x + (destination.x - current.x) * alpha,
-      y: current.y + (destination.y - current.y) * alpha,
-    }
+    _current.x = cur.x
+    _current.y = cur.y
+    _destination.x = dest.x
+    _destination.y = dest.y
 
-    if (Math.hypot(destination.x - interpolated.x, destination.y - interpolated.y) < 0.5) {
-      smoothedCursorPoint.value = { ...destination }
+    _interpolated.x = _current.x + (_destination.x - _current.x) * alpha
+    _interpolated.y = _current.y + (_destination.y - _current.y) * alpha
+
+    if (Math.hypot(_destination.x - _interpolated.x, _destination.y - _interpolated.y) < 0.5) {
+      smoothedCursorPoint.value = { x: _destination.x, y: _destination.y }
 
       latestCursorPoint.value = void 0
     } else {
-      smoothedCursorPoint.value = interpolated
+      smoothedCursorPoint.value = { x: _interpolated.x, y: _interpolated.y }
     }
 
-    void handleCursorMove(smoothedCursorPoint.value)
+    handleCursorMove(smoothedCursorPoint.value)
   }
 
   onMounted(async () => {
@@ -158,11 +170,17 @@ export function useDevice() {
     }
   })()
 
+  // Reusable PhysicalPosition to avoid allocation per frame
+  let _pos: PhysicalPosition | null = null
+
   const handleCursorMove = async (cursorPoint: CursorPoint) => {
     const x = cursorPoint.x * scaleFactor.value
     const y = cursorPoint.y * scaleFactor.value
 
-    handleMouseMove(new PhysicalPosition(x, y))
+    if (!_pos || _pos.x !== x || _pos.y !== y) {
+      _pos = new PhysicalPosition(x, y)
+    }
+    handleMouseMove(_pos)
 
     if (!catStore.window.hideOnHover) return
 
@@ -190,7 +208,13 @@ export function useDevice() {
 
     if (kind === 'KeyboardPress' || kind === 'KeyboardRelease') {
       if (kind === 'KeyboardPress') {
-        statsStore.incrementKeyPress()
+        // Only count on first press, not on auto-repeat
+        if (!pressedKeys.has(value)) {
+          pressedKeys.add(value)
+          statsStore.incrementKeyPress()
+        }
+      } else {
+        pressedKeys.delete(value)
       }
 
       const nextValue = getSupportedKey(value)
@@ -216,9 +240,14 @@ export function useDevice() {
 
     switch (kind) {
       case 'MousePress':
-        statsStore.incrementMouseClick()
+        // Only count on first press, not on hold-repeat
+        if (!pressedMouse.has(value)) {
+          pressedMouse.add(value)
+          statsStore.incrementMouseClick()
+        }
         return handleMouseChange(value)
       case 'MouseRelease':
+        pressedMouse.delete(value)
         return handleMouseChange(value, false)
       case 'MouseMove':
         return latestCursorPoint.value = value

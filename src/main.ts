@@ -13,10 +13,8 @@ import './assets/css/global.scss'
 
 const pinia = createPinia()
 pinia.use(createPlugin({
-  saveOnChange: true,
+  saveOnChange: false,
   saveOnExit: true,
-  saveStrategy: 'debounce',
-  saveInterval: 1000,
 }))
 
 createApp(App).use(router).use(pinia).use(i18n).mount('#app')

@@ -14,6 +14,9 @@ import { i18n } from '@/locales'
 import { join } from './path'
 
 Config.MouseFollow = false
+// CPU side: halve the default ticker speed so heavy-I/O or
+// GC-pause machines don't spend every frame inside Live2D updates.
+Ticker.shared.maxFPS = 30
 
 class Live2d {
   private app: Application | null = null
@@ -32,8 +35,10 @@ class Live2d {
       view,
       resizeTo: window,
       backgroundAlpha: 0,
-      autoDensity: true,
-      resolution: devicePixelRatio,
+      autoDensity: false,
+      // GPU side: use real screen pixels on HiDPI displays,
+      // but at most 1.25× so old GPUs aren't pushed to 2×+ fill-rate.
+      resolution: Math.min(window.devicePixelRatio, 1.25),
     })
   }
 
