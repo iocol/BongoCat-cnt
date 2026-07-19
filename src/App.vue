@@ -16,6 +16,7 @@ import { useWindowState } from './composables/useWindowState'
 import { LANGUAGE, LISTEN_KEY } from './constants'
 import { getAntdLocale } from './locales/index.ts'
 import { hideWindow, showWindow } from './plugins/window'
+import { isRunningAsAdministrator } from './plugins/adminStatus'
 import { useAppStore } from './stores/app'
 import { useBuddyStore } from './stores/buddy'
 import { useCatStore } from './stores/cat'
@@ -23,6 +24,8 @@ import { useGeneralStore } from './stores/general'
 import { useModelStore } from './stores/model'
 import { useShortcutStore } from './stores/shortcut.ts'
 import { useStatsStore } from './stores/stats'
+import { confirm } from '@tauri-apps/plugin-dialog'
+import { exit } from '@tauri-apps/plugin-process'
 
 const appStore = useAppStore()
 const modelStore = useModelStore()
@@ -94,6 +97,17 @@ async function autoConnectBuddy() {
 }
 
 onMounted(async () => {
+  // Check administrator permission on every startup (required for input monitoring)
+  const isAdmin = await isRunningAsAdministrator().catch(() => true)
+  if (!isAdmin) {
+    const { t } = useI18n()
+    await confirm(t('pages.preference.general.hints.administratorPermissionGuide'), {
+      title: t('pages.preference.general.labels.administratorPermission'),
+      kind: 'warning',
+    })
+    exit(0)
+    return
+  }
   await appStore.$tauri.start()
   await appStore.init()
   await modelStore.$tauri.start()

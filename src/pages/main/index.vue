@@ -54,6 +54,7 @@ const hasOnlineBuddies = computed(() => {
 
 const topPeers = computed(() => {
   return [...buddyStore.peers]
+    .filter(p => p.online)
     .sort((a, b) => (b.today.key_presses + b.today.mouse_clicks) - (a.today.key_presses + a.today.mouse_clicks))
     .slice(0, 3)
 })
@@ -63,6 +64,19 @@ onMounted(() => {
 })
 
 onUnmounted(handleDestroy)
+
+// ---- Pause Live2D rendering when window is hidden or unfocused ----
+function updateRenderState() {
+  const visible = catStore.window.visible && document.visibilityState === 'visible'
+  if (visible) {
+    live2d.resume()
+  } else {
+    live2d.pause()
+  }
+}
+
+watch(() => catStore.window.visible, updateRenderState)
+useEventListener('visibilitychange', updateRenderState)
 
 const debouncedResize = useDebounceFn(async () => {
   await handleResize()
@@ -352,10 +366,6 @@ function handleStatsContextMenu(event: MouseEvent) {
           v-if="showStats && statsPage === 1"
           class="stats-detail"
         >
-          <div class="detail-title">
-            👥 {{ $t('pages.main.stats.buddyLeaderboard') }}
-          </div>
-
           <div
             v-if="topPeers.length === 0"
             class="detail-row"

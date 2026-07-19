@@ -138,6 +138,16 @@ class Live2d {
   public setMaxFPS(fps: number) {
     Ticker.shared.maxFPS = fps
   }
+
+  /** Stop the render loop when window is hidden or unfocused */
+  public pause() {
+    Ticker.shared.stop()
+  }
+
+  /** Resume the render loop */
+  public resume() {
+    Ticker.shared.start()
+  }
 }
 
 const live2d = new Live2d()
