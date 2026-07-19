@@ -37,7 +37,7 @@ const buddyStore = useBuddyStore()
 const appWindow = getCurrentWebviewWindow()
 const { isRestored, restoreState } = useWindowState()
 const { darkAlgorithm, defaultAlgorithm } = theme
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 
 // ---- Buddy auto-connect + stats push timer ----
 let pushTimer: ReturnType<typeof setInterval> | null = null
@@ -97,10 +97,13 @@ async function autoConnectBuddy() {
 }
 
 onMounted(async () => {
+  // Load settings first so i18n has correct language
+  await generalStore.$tauri.start()
+  await generalStore.init()
+
   // Check administrator permission on every startup (required for input monitoring)
   const isAdmin = await isRunningAsAdministrator().catch(() => true)
   if (!isAdmin) {
-    const { t } = useI18n()
     await confirm(t('pages.preference.general.hints.administratorPermissionGuide'), {
       title: t('pages.preference.general.labels.administratorPermission'),
       kind: 'warning',
@@ -114,8 +117,6 @@ onMounted(async () => {
   await modelStore.init()
   await catStore.$tauri.start()
   catStore.init()
-  await generalStore.$tauri.start()
-  await generalStore.init()
   await shortcutStore.$tauri.start()
   shortcutStore.init()
   await statsStore.$tauri.start()
